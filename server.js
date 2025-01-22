@@ -5,7 +5,7 @@ var express = require('express'), // Call express
     mongoose = require('mongoose'), // Call mongoose to interact with a MongoDB(Database) instance
     Task = require('./api/models/tasksModel'), // Created model loading here
     bodyParser = require('body-parser'); //Middleware to process incoming request body objects
-  
+const axios = require('axios');
 // Mongoose instance connection url connection
 mongoose.Promise = global.Promise;
 
@@ -35,6 +35,59 @@ app.use('/health', require('express-healthcheck')({
       return { message: 'ExpressJS web service is up and running' };
   }
 }));
+
+app.get("/axios/getAll", (req, res, next) => {
+  console.log("'/test' call");
+  axios.get("http://localhost:8084/reviews")
+  .then(response => res.json(response.data))
+     .catch(err => res.secn(err));
+})
+
+
+app.post("/axios/create", (req, res, next) => {
+  console.log("'/test' call");
+  axios.post('http://localhost:8084/reviews', req.body)
+  .then(response => res.json(response.data))
+  .catch(function (error) {
+    console.log(error);
+  });
+})
+
+app.put("/axios/update/:id", async (req, res, next) => {
+  try{
+  let postId = req.params.id;
+  axios.put('http://localhost:8084/reviews'+ "/" + postId, req.body)
+  .then(response => res.json(response.data))
+  .res.status(200).json({ data: response.data });
+}catch (err) {
+    console.log(err);
+    //res.status(500).json({ msg: "request id is not present" });
+  }
+});
+
+app.get("/axios/:id", async (req, res) => {
+  try {
+    let postId = req.params.id;
+    console.log("Making axios call with post id= " + postId);
+    const response = await axios.get('http://localhost:8084/reviews' + "/" + postId);
+    res.status(200).json({ data: response.data });
+  } catch (err) {
+    console.log(err);
+    res.status(500).json({ msg: "something bad has occurred." });
+  }
+});
+
+app.delete("/axios/:id", async (req, res) => {
+  try {
+    let postId = req.params.id;
+    console.log("Making axios call with post id= " + postId);
+    const response = await axios.delete('http://localhost:8084/reviews' + "/" + postId);
+    res.status(200).json({ data: response.data });
+  } catch (err) {
+    console.log(err);
+    res.status(500).json({ msg: "something bad has occurred." });
+  }
+});
 
 // All of our routes will be prefixed with /api
 app.use('/api', router);
